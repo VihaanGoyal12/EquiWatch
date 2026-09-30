@@ -46,6 +46,17 @@ app.add_middleware(
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+@app.get("/")
+def root():
+    return {
+        "service": "EquiWatch API",
+        "status": "online",
+        "description": "EquiWatch: Detect. Explain. Act. — AI-powered workplace gender-equity decision-support system.",
+        "documentation": "/docs",
+        "health": "/health",
+        "dashboard_summary": "/api/v1/dashboard/summary"
+    }
+
 @app.get("/health")
 def health_check():
     return {
