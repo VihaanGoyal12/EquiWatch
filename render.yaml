@@ -1,33 +1,30 @@
 services:
-  # EquiWatch Backend API Web Service
+  # 1. EquiWatch Backend (FastAPI + Python Analytics Engine)
   - type: web
-    name: equiwatch-api
+    name: equiwatch-backend
     runtime: python
-    repo: https://github.com/TanmayJain-dev/EquiWatch
-    branch: main
-    region: singapore
-    plan: free
     rootDir: backend
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /health
-    autoDeployTrigger: commit
     envVars:
       - key: DATABASE_URL
         value: sqlite:///./equiwatch.db
       - key: SECRET_KEY
         generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "10080"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
 
-  # EquiWatch Frontend Static Web App
+  # 2. EquiWatch Frontend (React + Vite SPA)
   - type: web
-    name: equiwatch-ui
+    name: equiwatch-frontend
     runtime: static
-    repo: https://github.com/TanmayJain-dev/EquiWatch
-    branch: main
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    autoDeployTrigger: commit
     routes:
       - type: rewrite
         source: /*
@@ -36,5 +33,5 @@ services:
       - key: VITE_API_URL
         fromService:
           type: web
-          name: equiwatch-api
+          name: equiwatch-backend
           property: host
