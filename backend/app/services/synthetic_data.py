@@ -2,7 +2,7 @@ import random
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.models.models import (
-    User, Department, Employee, TaskRecord, Compensation, CareerEvent, EquitySignal
+    User, Department, Employee, TaskRecord, Compensation, CareerEvent, EquitySignal, Report
 )
 from app.core.security import get_password_hash
 from app.core.config import settings
@@ -114,6 +114,8 @@ PERIODS = [
     ("2025-Q4", "Q4", 2025),
 ]
 
+from app.core.database import Base, engine
+
 def generate_synthetic_dataset(db: Session, force_reset: bool = True) -> dict:
     """
     Generates a full synthetic dataset for NovaWorks with realistic distributions,
@@ -121,8 +123,12 @@ def generate_synthetic_dataset(db: Session, force_reset: bool = True) -> dict:
     """
     random.seed(SEED_VALUE)
 
+    # Ensure all tables are created in SQLite
+    Base.metadata.create_all(bind=engine)
+
     if force_reset:
         # Clear existing transactional and analytic records
+        db.query(Report).delete()
         db.query(EquitySignal).delete()
         db.query(CareerEvent).delete()
         db.query(Compensation).delete()

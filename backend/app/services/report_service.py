@@ -115,6 +115,25 @@ class ReportService:
                 "Are workload distributions balanced during peak fiscal cycles?"
             ]
 
+        # Check if report already exists for department & period to prevent duplication
+        existing_report = db.query(Report).filter(
+            Report.department_name == department_name,
+            Report.period == period
+        ).first()
+
+        if existing_report:
+            existing_report.title = f"Workplace Equity Review Report — {department_name}"
+            existing_report.summary = summary
+            existing_report.findings = findings_json
+            existing_report.equity_signals = signals_json
+            existing_report.recommended_actions = recommended_actions
+            existing_report.investigation_questions = investigation_questions
+            existing_report.author_email = author_email
+            existing_report.created_at = datetime.utcnow()
+            db.commit()
+            db.refresh(existing_report)
+            return existing_report
+
         report = Report(
             title=f"Workplace Equity Review Report — {department_name}",
             department_name=department_name,

@@ -15,12 +15,16 @@ def list_departments(db: Session = Depends(get_db)):
         review_count = sum(1 for s in signals if s.severity == "review")
         status = "Review" if review_count > 0 else ("Moderate" if any(s.severity == "moderate" for s in signals) else "Normal")
         
+        emp_count = db.query(Employee).filter(
+            (Employee.department_id == d.id) | (Employee.department_name.ilike(d.name))
+        ).count()
+        
         results.append({
             "id": d.id,
             "name": d.name,
             "code": d.code,
             "description": d.description,
-            "head_count": d.head_count,
+            "head_count": emp_count,
             "status": status,
             "signals_count": len(signals),
             "review_signals_count": review_count
@@ -44,13 +48,17 @@ def get_department_overview(name: str, period: str = "2025-Q4", db: Session = De
     review_signals = [s for s in signals if s.severity == "review" and s.status == "active"]
     status = "Review" if review_signals else ("Moderate" if any(s.severity == "moderate" for s in signals) else "Normal")
 
+    emp_count = db.query(Employee).filter(
+        (Employee.department_id == dept.id) | (Employee.department_name.ilike(dept.name))
+    ).count()
+
     return {
         "department": {
             "id": dept.id,
             "name": dept.name,
             "code": dept.code,
             "description": dept.description,
-            "head_count": dept.head_count,
+            "head_count": emp_count,
             "status": status,
         },
         "signals": [

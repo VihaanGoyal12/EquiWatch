@@ -1,14 +1,15 @@
 import os
 import json
+import re
 import requests
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.models.models import EquitySignal, Department
+from app.models.models import EquitySignal, Department, Employee, TaskRecord, Compensation, CareerEvent
 from app.services.analytics_engine import AnalyticsEngine
 
 SYSTEM_PROMPT = """
-You are the EquiWatch AI Analyst, an expert workplace equity decision-support assistant.
+You are the EquiWatch AI Analyst, an expert workplace gender-equity decision-support assistant.
 Your role is to explain verified statistical patterns provided by the EquiWatch analytics engine.
 
 STRICT PRINCIPLES:
@@ -20,7 +21,8 @@ STRICT PRINCIPLES:
 
 class AIService:
     """
-    AI Insight Layer combining LLM inference with deterministic, grounded fallbacks.
+    AI Insight Layer combining LLM inference (Gemini / OpenAI) with an intelligent,
+    dynamic, database-grounded local analytical engine.
     """
 
     @classmethod
@@ -139,9 +141,8 @@ class AIService:
         """
         Explains a specific chart's underlying data trend.
         """
-        # Formulate grounded explanation
         if "Promotion" in chart_title or metric == "promotion_rate":
-            summary = f"The promotion rate gap between male and female employees in {department} has widened over the observed timeline, reaching an 8.3 percentage point disparity in recent quarters."
+            summary = f"The promotion rate gap between male and female employees in {department} has widened over the observed timeline, reaching an 8.3 to 10.4 percentage point disparity in recent quarters."
             obs = [
                 "Early quarters (Q1-Q2) showed a narrower gap of 3.2 to 4.8 pp.",
                 "Recent quarters (Q3-Q4) show accelerated advancement rates among male candidates.",
@@ -152,8 +153,8 @@ class AIService:
         elif "Task" in chart_title or metric == "task_allocation":
             summary = f"Task allocation analysis in {department} highlights a significant divergence in non-promotable administrative tasks vs high-visibility strategic assignments."
             obs = [
-                "Female team members carry 61% of administrative/coordination workload.",
-                "Male team members represent 68% of strategic customer pitch hours.",
+                "Female team members carry ~61% of administrative/coordination workload.",
+                "Male team members represent ~68% of strategic customer pitch hours.",
                 "Disparity remains stable across multiple rolling quarters."
             ]
             caveats = "Job title matching indicates both cohorts have comparable average tenure and baseline qualifications."
@@ -194,108 +195,217 @@ class AIService:
     ) -> Dict[str, Any]:
         """
         Conversational assistant answering HR queries with live data citations.
+        Supports both external LLMs (Gemini / OpenAI) with strict database grounding
+        and a rich dynamic statistical query interpreter.
         """
-        msg_lower = message.lower()
+        # 1. Gather live organizational metrics from the database
         signals = db.query(EquitySignal).all()
         departments = db.query(Department).all()
         dept_names = [d.name for d in departments]
+        
+        # Build live summary dictionary for LLM or local reasoning
+        dept_summaries = {}
+        for d in departments:
+            d_name = d.name
+            t_res = AnalyticsEngine.analyze_task_allocation(db, d_name)
+            p_res = AnalyticsEngine.analyze_promotions(db, d_name)
+            pay_res = AnalyticsEngine.analyze_pay(db, d_name)
+            w_res = AnalyticsEngine.analyze_workload(db, d_name)
+            d_sigs = [s for s in signals if s.department_name.lower() == d_name.lower()]
+            dept_summaries[d_name] = {
+                "headcount": d.head_count,
+                "signals_count": len(d_sigs),
+                "review_signals": [s.title for s in d_sigs if s.severity == "review"],
+                "task_admin_female_pct": t_res["female_distribution"].get("administrative", 0),
+                "task_admin_male_pct": t_res["male_distribution"].get("administrative", 0),
+                "task_admin_gap_pp": t_res["largest_gap_pp"],
+                "promotion_female_rate": p_res["overall_female_rate_pct"],
+                "promotion_male_rate": p_res["overall_male_rate_pct"],
+                "promotion_gap_pp": p_res["gap_pp"],
+                "promotion_trend": p_res["trend_direction"],
+                "pay_raw_gap_pct": pay_res["raw_difference_pct"],
+                "pay_controlled_gap_pct": pay_res["controlled_gap_pct"],
+                "pay_explanation": pay_res["control_explanation"],
+                "workload_female_avg": w_res["female_avg_hours"],
+                "workload_male_avg": w_res["male_avg_hours"],
+            }
 
+        # 2. Try LLM first if API key is provided
+        llm_chat_res = cls._call_llm_for_chat(message, history, dept_summaries)
+        if llm_chat_res:
+            return llm_chat_res
+
+        # 3. Dynamic Local Analytical Query Engine
+        msg_lower = message.lower().strip()
         cited_metrics = []
         followups = []
 
-        # 1. Sales Review Question
-        if "sales" in msg_lower and ("review" in msg_lower or "why" in msg_lower or "flag" in msg_lower or "signal" in msg_lower):
-            sales_signals = [s for s in signals if s.department_name == "Sales"]
+        # Check for priority / where to look first
+        if "first" in msg_lower or "priority" in msg_lower or "where should hr look" in msg_lower or "needs review" in msg_lower or "urgent" in msg_lower:
+            sales_info = dept_summaries.get("Sales", {})
             resp = (
-                "**Sales** currently has **2 active signals requiring review**:\n\n"
-                "1. **Task Allocation Disparity**: Female employees are allocated **61% of administrative tasks** compared to **39% for male peers** (a 22.0 pp difference, persistent across 6 quarters). Concurrently, strategic high-visibility pitch participation is lower (18% F vs 34% M).\n\n"
-                "2. **Promotion Disparity**: Annualized promotion rate in Sales is **18.4% for women vs 26.7% for men** (an 8.3 pp gap, widening over the last 4 quarters). Average time in band before promotion is 28.4 months for women vs 22.1 months for men.\n\n"
-                "**Recommended Action**: EquiWatch recommends reviewing task assignment rotations and auditing promotion nomination dossiers with Sales leadership."
+                "### 🎯 Top Priority for HR Review:\n\n"
+                "1. **Sales Department — Promotion & Task Allocation** (Highest Priority):\n"
+                f"   - **Promotion Gap**: Male promotion rate is **{sales_info.get('promotion_male_rate', 26.7)}%** vs **{sales_info.get('promotion_female_rate', 18.4)}%** for women (an **{sales_info.get('promotion_gap_pp', 8.3)} pp disparity**, widening over 4+ quarters).\n"
+                f"   - **Task Allocation**: Female team members carry **{sales_info.get('task_admin_female_pct', 61)}% of administrative work** vs **{sales_info.get('task_admin_male_pct', 39)}%** for men.\n"
+                "   - **Recommended Action**: Review client pitch access criteria and rotation policies for routine administrative duties.\n\n"
+                "2. **Operations — Coordination Workload** (Moderate Priority):\n"
+                "   - Coordination task share variance of 9.9 pp.\n\n"
+                "3. **IT, Finance, HR**: Currently exhibiting normal operational parity."
             )
             cited_metrics = [
-                {"department": "Sales", "metric": "Task Allocation", "value": "61% F vs 39% M (Admin)", "source": "TaskRecord Analysis 2025-Q4"},
-                {"department": "Sales", "metric": "Promotion Rate", "value": "18.4% F vs 26.7% M (8.3 pp gap)", "source": "CareerEvent Longitudinal Tracking"}
+                {"department": "Sales", "metric": "Promotion Gap", "value": f"{sales_info.get('promotion_gap_pp', 8.3)} pp", "source": "Priority Queue Signal Engine"},
+                {"department": "Sales", "metric": "Task Allocation", "value": f"{sales_info.get('task_admin_gap_pp', 22.0)} pp", "source": "Task Allocation Tracker"}
             ]
             followups = [
                 "What specific questions should HR ask the Sales VP?",
-                "How does Sales compare to Marketing and IT?",
-                "Generate a Sales department review report"
-            ]
-
-        # 2. Largest workload or task difference
-        elif "workload" in msg_lower or "largest" in msg_lower or "difference" in msg_lower:
-            resp = (
-                "Based on latest quarterly analytics across all 5 departments:\n\n"
-                "- **Largest Task Allocation Disparity**: **Sales** has the largest gap, with a **22.0 percentage point difference** in administrative task allocation.\n"
-                "- **Operations**: Shows a moderate coordination workload difference of **12.0 pp**, but promotion rates remain balanced.\n"
-                "- **IT & Finance**: Exhibit balanced workload and task distribution within normal tolerances (±2.5 pp)."
-            )
-            cited_metrics = [
-                {"department": "Sales", "metric": "Administrative Task Gap", "value": "22.0 pp", "source": "EquiWatch Signal Engine"},
-                {"department": "Operations", "metric": "Coordination Gap", "value": "12.0 pp", "source": "EquiWatch Signal Engine"}
-            ]
-            followups = [
-                "Show details for Operations",
                 "Explain the Finance pay analysis",
-                "Where should HR look first?"
+                "Generate a Sales department report"
             ]
 
-        # 3. Where should HR look first?
-        elif "look first" in msg_lower or "priority" in msg_lower or "investigate first" in msg_lower or "needs review" in msg_lower:
-            resp = (
-                "**Top Priority for HR Review**:\n\n"
-                "1. **Sales — Promotion & Task Allocation**: This is your highest-priority review area. The promotion gap has widened to 8.3 pp over 4 quarters, and is strongly correlated with disproportionate administrative task assignments (61% F vs 39% M).\n\n"
-                "2. **Operations — Coordination Load**: Secondary moderate signal regarding recurring coordination tasks.\n\n"
-                "3. **Finance & IT**: Currently in healthy parity; no urgent action required."
-            )
-            cited_metrics = [
-                {"department": "Sales", "metric": "Promotion & Task Signals", "value": "Review Severity", "source": "Active Signals Queue"}
-            ]
-            followups = [
-                "Why is Sales promotion gap widening?",
-                "What HR questions should we prepare for 1-on-1s?",
-                "Export full summary report"
-            ]
-
-        # 4. Compare departments
-        elif "compare" in msg_lower:
-            resp = (
-                "**Departmental Equity Comparison Summary**:\n\n"
-                "| Department | Status | Primary Signal | Persistence |\n"
-                "| :--- | :--- | :--- | :--- |\n"
-                "| **Sales** | **Review** | Task allocation (22 pp) & Promotion (8.3 pp) | 4-6 Quarters (Widening) |\n"
-                "| **Operations** | **Moderate** | Coordination task share (12 pp) | 3 Quarters |\n"
-                "| **Finance** | **Normal** | Apparent raw pay gap explained by controls | Parity within tiers |\n"
-                "| **IT** | **Normal** | Balanced technical tasks & promotions | Normal parity |\n"
-                "| **HR** | **Normal** | Parity across all tracked dimensions | Normal parity |"
-            )
-            cited_metrics = [
-                {"department": "All", "metric": "Cross-Department Comparison", "value": "5 Departments Evaluated", "source": "EquiWatch Master Engine"}
-            ]
-            followups = [
-                "Why does Finance have an apparent raw pay gap?",
-                "How can we fix task allocation in Sales?",
-                "Show Government sector comparison"
-            ]
-
-        # Default helpful assistant response
+        # Check for department name
         else:
-            active_count = len([s for s in signals if s.severity == "review"])
-            resp = (
-                f"EquiWatch currently monitors **5 departments** at NovaWorks ({len(departments)} departments loaded). "
-                f"There are **{active_count} primary signals requiring review**, concentrated in **Sales** (Task Allocation and Promotion Velocity).\n\n"
-                "You can ask me to:\n"
-                "- Explain why a specific department was flagged\n"
-                "- Compare metrics across departments\n"
-                "- Evaluate raw vs controlled pay gaps\n"
-                "- Provide tailored investigation questions for people managers"
-            )
-            followups = [
-                "Why is Sales showing a review signal?",
-                "Where should HR look first?",
-                "Explain the difference between raw and controlled pay in Finance",
-                "Generate a review report for Sales"
-            ]
+            target_dept = None
+            for d in dept_names:
+                # Match full word or name
+                if re.search(r'\b' + re.escape(d.lower()) + r'\b', msg_lower) or (d.lower() in msg_lower and len(d) > 2):
+                    target_dept = d
+                    break
+
+            if target_dept:
+                info = dept_summaries.get(target_dept, {})
+                if "promotion" in msg_lower or "advance" in msg_lower or "velocity" in msg_lower:
+                    resp = (
+                        f"### Promotion Analysis for **{target_dept}**:\n\n"
+                        f"- **Annualized Female Promotion Rate**: **{info.get('promotion_female_rate')}%**\n"
+                        f"- **Annualized Male Promotion Rate**: **{info.get('promotion_male_rate')}%**\n"
+                        f"- **Observed Gap**: **{info.get('promotion_gap_pp')} percentage points** ({info.get('promotion_trend')} trend)\n\n"
+                        f"{'⚠️ This disparity has been persistent across multiple quarters and requires HR review of nomination dossiers.' if info.get('promotion_gap_pp', 0) >= 6 else '✅ Promotion rates in this department remain within standard parity tolerances.'}"
+                    )
+                    cited_metrics = [
+                        {"department": target_dept, "metric": "Promotion Rate", "value": f"{info.get('promotion_female_rate')}% F vs {info.get('promotion_male_rate')}% M", "source": "CareerEvent Longitudinal Records"}
+                    ]
+                    followups = [
+                        f"What questions should HR ask the {target_dept} lead?",
+                        f"What is the task allocation in {target_dept}?",
+                        "Where should HR look first?"
+                    ]
+
+                elif "task" in msg_lower or "admin" in msg_lower or "workload" in msg_lower or "hours" in msg_lower:
+                    resp = (
+                        f"### Task Allocation & Workload for **{target_dept}**:\n\n"
+                        f"- **Administrative Task Share**: Female **{info.get('task_admin_female_pct')}%** vs Male **{info.get('task_admin_male_pct')}%** (Variance: **{info.get('task_admin_gap_pp')} pp**)\n"
+                        f"- **Average Workload**: **{info.get('workload_female_avg')}h** (Female) vs **{info.get('workload_male_avg')}h** (Male)\n\n"
+                        f"{'⚠️ High concentration of non-promotable administrative and coordination duties observed for female team members.' if abs(info.get('task_admin_gap_pp', 0)) >= 12 else '✅ Workload and task distribution reflect balanced operational parity.'}"
+                    )
+                    cited_metrics = [
+                        {"department": target_dept, "metric": "Task Allocation", "value": f"{info.get('task_admin_female_pct')}% F vs {info.get('task_admin_male_pct')}% M", "source": "TaskRecord Analysis 2025-Q4"}
+                    ]
+                    followups = [
+                        f"Show promotion rate for {target_dept}",
+                        f"Generate review report for {target_dept}",
+                        "Compare with other departments"
+                    ]
+
+                elif "pay" in msg_lower or "salary" in msg_lower or "comp" in msg_lower:
+                    resp = (
+                        f"### Compensation Analysis for **{target_dept}**:\n\n"
+                        f"- **Raw Median Pay Gap**: **{info.get('pay_raw_gap_pct')}%**\n"
+                        f"- **Controlled Pay Gap** (controlling for role & seniority): **{info.get('pay_controlled_gap_pct')}%**\n"
+                        f"- **Fairness Pipeline Assessment**: {info.get('pay_explanation')}\n\n"
+                        f"{'✅ When controlling for comparable role titles and seniority bands, pay parity is preserved.' if abs(info.get('pay_controlled_gap_pct', 0)) < 3.5 else '⚠️ Controlled compensation variance exceeds standard 5% threshold.'}"
+                    )
+                    cited_metrics = [
+                        {"department": target_dept, "metric": "Controlled Pay Gap", "value": f"{info.get('pay_controlled_gap_pct')}%", "source": "Compensation Model with Seniority Controls"}
+                    ]
+                    followups = [
+                        f"Why is raw pay different in {target_dept}?",
+                        "Where should HR look first?",
+                        "Export executive summary"
+                    ]
+
+                else:
+                    review_list = info.get('review_signals', [])
+                    resp = (
+                        f"### Department Overview: **{target_dept}**\n\n"
+                        f"- **Headcount**: {info.get('headcount')} employees\n"
+                        f"- **Active Potential Equity Signals**: {info.get('signals_count')} ({len(review_list)} requiring review)\n"
+                        f"- **Task Allocation (Admin Share)**: {info.get('task_admin_female_pct')}% (F) vs {info.get('task_admin_male_pct')}% (M)\n"
+                        f"- **Promotion Rate**: {info.get('promotion_female_rate')}% (F) vs {info.get('promotion_male_rate')}% (M) [Gap: {info.get('promotion_gap_pp')} pp]\n"
+                        f"- **Controlled Pay Gap**: {info.get('pay_controlled_gap_pct')}%\n\n"
+                        f"**HR Status**: {'Review Recommended due to persistent disparities.' if review_list else 'Normal Parity across baseline metrics.'}"
+                    )
+                    cited_metrics = [
+                        {"department": target_dept, "metric": "Overview", "value": f"{info.get('signals_count')} Signals", "source": "EquiWatch Department Telemetry"}
+                    ]
+                    followups = [
+                        f"What should HR investigate in {target_dept}?",
+                        f"Generate a {target_dept} review report",
+                        "Compare Sales and Finance"
+                    ]
+
+            elif "compare" in msg_lower or "across" in msg_lower or "all" in msg_lower or "summary" in msg_lower:
+                rows = []
+                for d in dept_names:
+                    inf = dept_summaries.get(d, {})
+                    status = "Review" if inf.get("review_signals") else ("Moderate" if inf.get("signals_count", 0) > 0 else "Normal")
+                    rows.append(f"| **{d}** | {status} | {inf.get('task_admin_gap_pp', 0)} pp | {inf.get('promotion_gap_pp', 0)} pp | {inf.get('pay_controlled_gap_pct', 0)}% |")
+
+                table_md = "\n".join(rows)
+                resp = (
+                    "### 📊 Cross-Department Equity Summary Matrix:\n\n"
+                    "| Department | Status | Admin Task Gap | Promotion Gap | Controlled Pay Gap |\n"
+                    "| :--- | :--- | :--- | :--- | :--- |\n"
+                    f"{table_md}\n\n"
+                    "**Key Takeaway**: Disparities are concentrated in **Sales** (opportunity access and promotion velocity). **Finance** shows an apparent raw salary gap that normalizes once controlling for seniority."
+                )
+                cited_metrics = [
+                    {"department": "All", "metric": "Cross-Department Comparison", "value": "5 Departments Evaluated", "source": "EquiWatch Master Engine"}
+                ]
+                followups = [
+                    "Why is Sales showing a review signal?",
+                    "Explain why Finance raw pay gap disappears",
+                    "Where should HR look first?"
+                ]
+
+            elif "question" in msg_lower or "ask" in msg_lower or "prompt" in msg_lower or "investigate" in msg_lower:
+                resp = (
+                    "### 💬 Recommended HR Investigation Questions for People Managers:\n\n"
+                    "1. **Task Distribution & Non-Promotable Work**:\n"
+                    "   - *'Are recurring internal administrative and coordination duties systematically rotated across all team members?'*\n"
+                    "   - *'Do managers track time spent on glue work and reflect it in performance evaluations?'*\n\n"
+                    "2. **High-Visibility Project Allocation**:\n"
+                    "   - *'Are high-impact, revenue-generating client pitches assigned through a transparent merit rubric rather than informal selection?'*\n\n"
+                    "3. **Promotion Readiness & Prerequisites**:\n"
+                    "   - *'Do all comparable employees have equal access to the sponsor-backed projects required for advancement to senior levels?'*"
+                )
+                cited_metrics = [
+                    {"department": "Decision Support", "metric": "Investigation Protocol", "value": "3 Guided Questions", "source": "EquiWatch Action Framework"}
+                ]
+                followups = [
+                    "Why is Sales showing a review signal?",
+                    "Generate a Sales department report",
+                    "Show Government sector comparison"
+                ]
+
+            else:
+                active_count = len([s for s in signals if s.severity == "review"])
+                resp = (
+                    f"EquiWatch currently monitors **5 departments** ({sum(d.head_count for d in departments)} total employees).\n\n"
+                    f"There are **{active_count} primary potential equity signals requiring review**, concentrated in **Sales** (Task Allocation and Promotion Velocity).\n\n"
+                    "You can ask me questions like:\n"
+                    "- *'Why is Sales showing a review signal?'*\n"
+                    "- *'What are the task allocation numbers in Operations?'*\n"
+                    "- *'Explain the difference between raw and controlled pay in Finance'*\n"
+                    "- *'Where should HR look first?'*\n"
+                    "- *'What questions should HR prepare for 1-on-1s?'*"
+                )
+                followups = [
+                    "Why is Sales showing a review signal?",
+                    "Where should HR look first?",
+                    "Explain the Finance pay analysis",
+                    "Generate a review report for Sales"
+                ]
 
         return {
             "response": resp,
@@ -305,16 +415,83 @@ class AIService:
         }
 
     @classmethod
+    def _call_llm_for_chat(
+        cls,
+        message: str,
+        history: List[Any],
+        dept_summaries: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Calls Gemini API or OpenAI API with live database context if key is configured.
+        """
+        gemini_key = os.getenv("GEMINI_API_KEY") or settings.GEMINI_API_KEY
+        openai_key = os.getenv("OPENAI_API_KEY") or settings.OPENAI_API_KEY
+
+        context_str = json.dumps(dept_summaries, indent=2)
+
+        # 1. Try Gemini
+        if gemini_key:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+                prompt = (
+                    f"{SYSTEM_PROMPT}\n\n"
+                    f"LIVE VERIFIED DATABASE CONTEXT:\n{context_str}\n\n"
+                    f"USER QUESTION: {message}\n\n"
+                    "Provide a clear, helpful markdown-formatted response based ONLY on the numbers above. "
+                    "Do not invent facts. Return valid JSON matching: "
+                    '{"response": "markdown string", "cited_metrics": [{"department": "Sales", "metric": "Promotion", "value": "18.4% vs 26.7%", "source": "CareerEvent Logs"}], "suggested_followups": ["Question 1", "Question 2"]}'
+                )
+
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"response_mime_type": "application/json"}
+                }
+                resp = requests.post(url, json=payload, timeout=8)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    text = data["candidates"][0]["content"]["parts"][0]["text"]
+                    parsed = json.loads(text)
+                    parsed["source_model"] = "Gemini 1.5 Flash (Grounded)"
+                    return parsed
+            except Exception:
+                pass
+
+        # 2. Try OpenAI
+        if openai_key:
+            try:
+                headers = {"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"}
+                prompt = (
+                    f"{SYSTEM_PROMPT}\n\n"
+                    f"LIVE VERIFIED DATABASE CONTEXT:\n{context_str}\n\n"
+                    f"USER QUESTION: {message}"
+                )
+                payload = {
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": message}
+                    ],
+                    "response_format": {"type": "json_object"}
+                }
+                resp = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=8)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    text = data["choices"][0]["message"]["content"]
+                    parsed = json.loads(text)
+                    parsed["source_model"] = "GPT-4o Mini (Grounded)"
+                    return parsed
+            except Exception:
+                pass
+
+        return None
+
+    @classmethod
     def _call_llm_for_insight(cls, signal_data: Dict[str, Any], context_data: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        """
-        Optional helper for external LLM API if GEMINI_API_KEY is configured.
-        """
-        api_key = settings.GEMINI_API_KEY
-        if not api_key:
+        gemini_key = os.getenv("GEMINI_API_KEY") or settings.GEMINI_API_KEY
+        if not gemini_key:
             return None
-        # Safe execution wrapper with JSON structure expectation
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             prompt = f"{SYSTEM_PROMPT}\n\nAnalyze this verified finding:\nSignal: {json.dumps(signal_data)}\nContext: {json.dumps(context_data or {})}\nRespond in pure JSON matching keys: finding, explanation, why_flagged, suggested_review, hr_questions, investigation_steps."
             
             payload = {

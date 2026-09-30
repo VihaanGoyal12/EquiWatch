@@ -65,18 +65,9 @@ export const DataManagementPage: React.FC = () => {
   };
 
   const downloadSampleCSV = () => {
-    const csvContent = `employee_id,gender,department,role,seniority,experience_years,task_category,task_name,hours,salary,bonus,increment,promotion,project_type,date
-EMP-101,Female,Sales,Account Executive,Mid,3.5,administrative,Pipeline Hygiene,210,1100000,80000,8.5,0,internal_ops,2025-10-15
-EMP-102,Male,Sales,Account Executive,Mid,3.6,strategic,Key Account Pitch,190,1120000,95000,9.0,1,client_core,2025-10-15
-EMP-103,Female,IT,Software Engineer,Mid,4.0,technical,Backend Microservice,490,1350000,100000,10.0,0,innovation,2025-10-15
-EMP-104,Male,IT,Software Engineer,Mid,4.2,technical,Cloud Infra Deployment,505,1380000,110000,10.0,0,innovation,2025-10-15
-EMP-105,Female,Finance,Financial Analyst,Junior,1.8,operational,Quarterly FP&A,495,680000,45000,7.0,0,standard,2025-10-15`;
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'equiwatch_workforce_template.csv');
+    link.href = '/demo_workforce.csv';
+    link.download = 'demo_workforce.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

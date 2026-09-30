@@ -1,0 +1,43 @@
+employee_id,gender,department,role,seniority,experience_years,task_category,task_name,hours,salary,bonus,increment,promotion,project_type,date
+CHK-2001,Female,Sales,Enterprise Sales Lead,Lead,9.2,strategic,Global Q4 Account Expansion,260,2650000,320000,9.0,1,client_core,2025-10-15
+CHK-2001,Female,Sales,Enterprise Sales Lead,Lead,9.2,client-facing,Executive Sponsor Demos,180,2650000,320000,9.0,1,client_core,2025-10-15
+CHK-2001,Female,Sales,Enterprise Sales Lead,Lead,9.2,administrative,Deal Desk Documentation,70,2650000,320000,9.0,1,internal_ops,2025-10-15
+CHK-2002,Male,Sales,Enterprise Sales Lead,Lead,9.5,strategic,Key Enterprise Renewal Pitches,270,2700000,340000,9.5,1,client_core,2025-10-15
+CHK-2002,Male,Sales,Enterprise Sales Lead,Lead,9.5,client-facing,C-Suite Closing Meetings,190,2700000,340000,9.5,1,client_core,2025-10-15
+CHK-2002,Male,Sales,Enterprise Sales Lead,Lead,9.5,administrative,Pipeline Status Reporting,50,2700000,340000,9.5,1,internal_ops,2025-10-15
+CHK-2003,Female,Sales,Account Executive,Mid,3.7,administrative,Meeting Minutes & Calendar Setup,210,1040000,75000,7.0,0,internal_ops,2025-10-15
+CHK-2003,Female,Sales,Account Executive,Mid,3.7,coordination,Regional Partner Alignment,150,1040000,75000,7.0,0,internal_ops,2025-10-15
+CHK-2003,Female,Sales,Account Executive,Mid,3.7,client-facing,Commercial Client Pitches,150,1040000,75000,7.0,0,client_core,2025-10-15
+CHK-2004,Male,Sales,Account Executive,Mid,3.9,client-facing,Direct Enterprise Prospecting,240,1070000,90000,8.5,1,client_core,2025-10-15
+CHK-2004,Male,Sales,Account Executive,Mid,3.9,strategic,Territory Revenue Strategy,190,1070000,90000,8.5,1,client_core,2025-10-15
+CHK-2004,Male,Sales,Account Executive,Mid,3.9,administrative,CRM Data Entry,80,1070000,90000,8.5,1,internal_ops,2025-10-15
+CHK-2005,Female,IT,Senior Software Engineer,Senior,6.5,technical,Core Payment Engine Microservice,330,2080000,210000,10.5,1,innovation,2025-10-15
+CHK-2005,Female,IT,Senior Software Engineer,Senior,6.5,leadership,Junior Developer Mentoring,110,2080000,210000,10.5,1,innovation,2025-10-15
+CHK-2005,Female,IT,Senior Software Engineer,Senior,6.5,operational,Production On-Call Rotation,70,2080000,210000,10.5,1,internal_ops,2025-10-15
+CHK-2006,Male,IT,Senior Software Engineer,Senior,6.7,technical,Distributed Cache Architecture,340,2110000,220000,11.0,1,innovation,2025-10-15
+CHK-2006,Male,IT,Senior Software Engineer,Senior,6.7,leadership,Design Document Review,100,2110000,220000,11.0,1,innovation,2025-10-15
+CHK-2006,Male,IT,Senior Software Engineer,Senior,6.7,operational,Site Reliability Patching,70,2110000,220000,11.0,1,internal_ops,2025-10-15
+CHK-2007,Female,IT,Data Scientist,Mid,4.1,technical,Predictive Churn ML Modeling,340,1410000,120000,9.0,0,innovation,2025-10-15
+CHK-2007,Female,IT,Data Scientist,Mid,4.1,operational,Model Accuracy Monitoring,110,1410000,120000,9.0,0,internal_ops,2025-10-15
+CHK-2007,Female,IT,Data Scientist,Mid,4.1,coordination,Stakeholder Metrics Reporting,60,1410000,120000,9.0,0,internal_ops,2025-10-15
+CHK-2008,Male,IT,Data Scientist,Mid,4.0,technical,Feature Engineering Pipeline,350,1420000,125000,9.0,0,innovation,2025-10-15
+CHK-2008,Male,IT,Data Scientist,Mid,4.0,operational,Dataset ETL Optimization,100,1420000,125000,9.0,0,internal_ops,2025-10-15
+CHK-2008,Male,IT,Data Scientist,Mid,4.0,coordination,Sprint Planning,60,1420000,125000,9.0,0,internal_ops,2025-10-15
+CHK-2009,Female,Finance,Finance Manager,Senior,7.1,strategic,Annual Corporate Capital Budget,280,1880000,180000,8.5,0,standard,2025-10-15
+CHK-2009,Female,Finance,Finance Manager,Senior,7.1,operational,Audit Committee Preparation,150,1880000,180000,8.5,0,standard,2025-10-15
+CHK-2009,Female,Finance,Finance Manager,Senior,7.1,coordination,Quarterly Close Coordination,80,1880000,180000,8.5,0,internal_ops,2025-10-15
+CHK-2010,Male,Finance,Finance Manager,Senior,7.3,strategic,Risk Hedge Portfolio Allocation,290,1910000,190000,9.0,0,standard,2025-10-15
+CHK-2010,Male,Finance,Finance Manager,Senior,7.3,operational,Treasury Auditing,140,1910000,190000,9.0,0,standard,2025-10-15
+CHK-2010,Male,Finance,Finance Manager,Senior,7.3,coordination,Banking Sync,80,1910000,190000,9.0,0,internal_ops,2025-10-15
+CHK-2011,Female,Operations,Operations Manager,Senior,7.4,operational,Supply Chain Vendor SLA Review,260,1630000,140000,7.5,0,standard,2025-10-15
+CHK-2011,Female,Operations,Operations Manager,Senior,7.4,strategic,Warehouse Automation Roadmap,160,1630000,140000,7.5,0,innovation,2025-10-15
+CHK-2011,Female,Operations,Operations Manager,Senior,7.4,administrative,Compliance Log Filing,90,1630000,140000,7.5,0,internal_ops,2025-10-15
+CHK-2012,Male,Operations,Operations Manager,Senior,7.6,operational,Global Freight Cost Auditing,270,1660000,150000,8.0,0,standard,2025-10-15
+CHK-2012,Male,Operations,Operations Manager,Senior,7.6,strategic,Carrier Negotiation Strategy,160,1660000,150000,8.0,0,standard,2025-10-15
+CHK-2012,Male,Operations,Operations Manager,Senior,7.6,administrative,Regulatory Filing,80,1660000,150000,8.0,0,internal_ops,2025-10-15
+CHK-2013,Female,HR,HR Business Partner,Senior,6.8,strategic,Engineering Succession Planning,280,1690000,130000,8.0,0,standard,2025-10-15
+CHK-2013,Female,HR,HR Business Partner,Senior,6.8,operational,Annual Performance Calibration,140,1690000,130000,8.0,0,standard,2025-10-15
+CHK-2013,Female,HR,HR Business Partner,Senior,6.8,coordination,Executive 1-on-1 Feedback Sync,90,1690000,130000,8.0,0,internal_ops,2025-10-15
+CHK-2014,Male,HR,HR Business Partner,Senior,6.9,strategic,Sales Compensation Redesign,290,1710000,135000,8.5,0,standard,2025-10-15
+CHK-2014,Male,HR,HR Business Partner,Senior,6.9,operational,Talent Review Moderation,140,1710000,135000,8.5,0,standard,2025-10-15
+CHK-2014,Male,HR,HR Business Partner,Senior,6.9,coordination,Leadership Alignment Meetings,80,1710000,135000,8.5,0,internal_ops,2025-10-15

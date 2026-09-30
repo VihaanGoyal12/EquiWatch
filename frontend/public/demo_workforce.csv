@@ -1,0 +1,55 @@
+employee_id,gender,department,role,seniority,experience_years,task_category,task_name,hours,salary,bonus,increment,promotion,project_type,date
+EMP-1001,Female,Sales,Account Executive,Mid,3.5,administrative,Pipeline Hygiene & Meeting Notes,220,1050000,80000,7.5,0,internal_ops,2025-10-15
+EMP-1001,Female,Sales,Account Executive,Mid,3.5,coordination,Client Schedule Coordination,140,1050000,80000,7.5,0,internal_ops,2025-10-15
+EMP-1001,Female,Sales,Account Executive,Mid,3.5,client-facing,Customer Demos,150,1050000,80000,7.5,0,client_core,2025-10-15
+EMP-1002,Male,Sales,Account Executive,Mid,3.8,strategic,Enterprise RFP & Strategy Pitch,230,1080000,95000,8.5,1,client_core,2025-10-15
+EMP-1002,Male,Sales,Account Executive,Mid,3.8,client-facing,Key Account Negotiation,200,1080000,95000,8.5,1,client_core,2025-10-15
+EMP-1002,Male,Sales,Account Executive,Mid,3.8,administrative,CRM Updates,80,1080000,95000,8.5,1,internal_ops,2025-10-15
+EMP-1003,Female,Sales,Senior Account Executive,Senior,6.2,administrative,Quarterly Sales Support Docs,190,1720000,180000,9.0,0,internal_ops,2025-10-15
+EMP-1003,Female,Sales,Senior Account Executive,Senior,6.2,strategic,Territory Growth Strategy,160,1720000,180000,9.0,0,client_core,2025-10-15
+EMP-1003,Female,Sales,Senior Account Executive,Senior,6.2,leadership,Team Mentorship & Onboarding,160,1720000,180000,9.0,0,innovation,2025-10-15
+EMP-1004,Male,Sales,Senior Account Executive,Senior,6.5,strategic,Strategic Global Pitch,280,1750000,210000,9.5,1,client_core,2025-10-15
+EMP-1004,Male,Sales,Senior Account Executive,Senior,6.5,client-facing,C-Suite Demos,180,1750000,210000,9.5,1,client_core,2025-10-15
+EMP-1004,Male,Sales,Senior Account Executive,Senior,6.5,administrative,Weekly Summary,60,1750000,210000,9.5,1,internal_ops,2025-10-15
+EMP-1005,Female,Sales,Sales Development Rep,Junior,1.2,administrative,Inbound Lead Data Entry,260,540000,30000,6.0,0,internal_ops,2025-10-15
+EMP-1005,Female,Sales,Sales Development Rep,Junior,1.2,coordination,Meeting Calendar Management,150,540000,30000,6.0,0,internal_ops,2025-10-15
+EMP-1005,Female,Sales,Sales Development Rep,Junior,1.2,client-facing,Prospect Outreach Calls,100,540000,30000,6.0,0,client_core,2025-10-15
+EMP-1006,Male,Sales,Sales Development Rep,Junior,1.4,client-facing,Outbound Cold Calls & Demos,240,560000,40000,7.0,0,client_core,2025-10-15
+EMP-1006,Male,Sales,Sales Development Rep,Junior,1.4,strategic,Campaign Target Sourcing,180,560000,40000,7.0,0,client_core,2025-10-15
+EMP-1006,Male,Sales,Sales Development Rep,Junior,1.4,administrative,CRM Data Logging,90,560000,40000,7.0,0,internal_ops,2025-10-15
+EMP-1007,Female,IT,Software Engineer,Mid,4.0,technical,Backend Microservices & APIs,340,1260000,90000,10.0,0,innovation,2025-10-15
+EMP-1007,Female,IT,Software Engineer,Mid,4.0,operational,Code Reviews & Unit Tests,110,1260000,90000,10.0,0,internal_ops,2025-10-15
+EMP-1007,Female,IT,Software Engineer,Mid,4.0,coordination,Sprint Planning,60,1260000,90000,10.0,0,internal_ops,2025-10-15
+EMP-1008,Male,IT,Software Engineer,Mid,3.9,technical,Backend Database Optimization,350,1280000,95000,10.0,0,innovation,2025-10-15
+EMP-1008,Male,IT,Software Engineer,Mid,3.9,operational,CI/CD Pipeline Maintenance,100,1280000,95000,10.0,0,internal_ops,2025-10-15
+EMP-1008,Male,IT,Software Engineer,Mid,3.9,coordination,Sprint Planning,60,1280000,95000,10.0,0,internal_ops,2025-10-15
+EMP-1009,Female,IT,Senior Software Engineer,Senior,6.8,technical,System Architecture Design,320,2080000,200000,11.0,1,innovation,2025-10-15
+EMP-1009,Female,IT,Senior Software Engineer,Senior,6.8,leadership,Tech Lead Mentorship,120,2080000,200000,11.0,1,innovation,2025-10-15
+EMP-1009,Female,IT,Senior Software Engineer,Senior,6.8,operational,Production Incident Response,70,2080000,200000,11.0,1,internal_ops,2025-10-15
+EMP-1010,Male,IT,Senior Software Engineer,Senior,6.6,technical,Cloud Infrastructure Migration,330,2100000,210000,11.0,1,innovation,2025-10-15
+EMP-1010,Male,IT,Senior Software Engineer,Senior,6.6,leadership,Tech Lead Architecture Review,110,2100000,210000,11.0,1,innovation,2025-10-15
+EMP-1010,Male,IT,Senior Software Engineer,Senior,6.6,operational,Cluster Patching,70,2100000,210000,11.0,1,internal_ops,2025-10-15
+EMP-1011,Female,Finance,Financial Analyst,Junior,1.8,operational,Quarterly Budget Reconciliation,310,660000,45000,6.5,0,standard,2025-10-15
+EMP-1011,Female,Finance,Financial Analyst,Junior,1.8,administrative,Expense Reporting & Filing,130,660000,45000,6.5,0,internal_ops,2025-10-15
+EMP-1011,Female,Finance,Financial Analyst,Junior,1.8,strategic,Variance Modeling,70,660000,45000,6.5,0,standard,2025-10-15
+EMP-1012,Male,Finance,Financial Analyst,Junior,1.9,operational,Quarterly Revenue Reconciliation,300,670000,48000,6.5,0,standard,2025-10-15
+EMP-1012,Male,Finance,Financial Analyst,Junior,1.9,administrative,Vendor Invoice Auditing,140,670000,48000,6.5,0,internal_ops,2025-10-15
+EMP-1012,Male,Finance,Financial Analyst,Junior,1.9,strategic,Forecast Cash Flow Scenarios,70,670000,48000,6.5,0,standard,2025-10-15
+EMP-1013,Female,Finance,Senior Financial Analyst,Mid,4.2,strategic,Corporate FP&A Five-Year Model,280,1140000,95000,8.0,0,standard,2025-10-15
+EMP-1013,Female,Finance,Senior Financial Analyst,Mid,4.2,operational,Audit Committee Deliverables,160,1140000,95000,8.0,0,standard,2025-10-15
+EMP-1013,Female,Finance,Senior Financial Analyst,Mid,4.2,coordination,Cross-Department Budget Sync,70,1140000,95000,8.0,0,internal_ops,2025-10-15
+EMP-1014,Male,Finance,Senior Financial Analyst,Mid,4.3,strategic,Mergers & Acquisitions Due Diligence,290,1160000,100000,8.0,0,standard,2025-10-15
+EMP-1014,Male,Finance,Senior Financial Analyst,Mid,4.3,operational,Treasury Yield Optimization,150,1160000,100000,8.0,0,standard,2025-10-15
+EMP-1014,Male,Finance,Senior Financial Analyst,Mid,4.3,coordination,Banking Partner Sync,70,1160000,100000,8.0,0,internal_ops,2025-10-15
+EMP-1015,Female,Operations,Operations Associate,Junior,1.5,operational,Supply Chain Inventory Tracking,240,510000,32000,6.0,0,standard,2025-10-15
+EMP-1015,Female,Operations,Operations Associate,Junior,1.5,coordination,Vendor Shipping Schedule Sync,180,510000,32000,6.0,0,internal_ops,2025-10-15
+EMP-1015,Female,Operations,Operations Associate,Junior,1.5,administrative,Logistics Documentation,90,510000,32000,6.0,0,internal_ops,2025-10-15
+EMP-1016,Male,Operations,Operations Associate,Junior,1.6,operational,Warehouse Logistics Auditing,250,520000,35000,6.0,0,standard,2025-10-15
+EMP-1016,Male,Operations,Operations Associate,Junior,1.6,strategic,Route Optimization Initiative,170,520000,35000,6.0,0,standard,2025-10-15
+EMP-1016,Male,Operations,Operations Associate,Junior,1.6,administrative,Manifest Archiving,90,520000,35000,6.0,0,internal_ops,2025-10-15
+EMP-1017,Female,HR,Talent Partner,Mid,3.6,operational,Full-Cycle Engineering Recruitment,310,940000,70000,7.5,0,standard,2025-10-15
+EMP-1017,Female,HR,Talent Partner,Mid,3.6,coordination,Interview Scheduling & Feedback,130,940000,70000,7.5,0,internal_ops,2025-10-15
+EMP-1017,Female,HR,Talent Partner,Mid,3.6,strategic,Diversity Hiring Sourcing Plan,70,940000,70000,7.5,0,innovation,2025-10-15
+EMP-1018,Male,HR,Talent Partner,Mid,3.7,operational,Executive Recruitment Pipeline,300,960000,75000,7.5,0,standard,2025-10-15
+EMP-1018,Male,HR,Talent Partner,Mid,3.7,coordination,Candidate Debrief Coordination,140,960000,75000,7.5,0,internal_ops,2025-10-15
+EMP-1018,Male,HR,Talent Partner,Mid,3.7,strategic,Talent Brand Campaign,70,960000,75000,7.5,0,innovation,2025-10-15

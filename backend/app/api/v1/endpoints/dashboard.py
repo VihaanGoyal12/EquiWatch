@@ -37,12 +37,15 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
             status = "Normal"
 
         primary_sig = d_signals[0].title if d_signals else "No active disparities"
+        actual_headcount = db.query(Employee).filter(
+            (Employee.department_id == d.id) | (Employee.department_name.ilike(d.name))
+        ).count()
 
         dept_overview.append(
             DepartmentStatusItem(
                 name=d.name,
                 code=d.code,
-                head_count=d.head_count,
+                head_count=actual_headcount,
                 signals_count=len(d_signals),
                 review_signals_count=len(d_review),
                 status=status,

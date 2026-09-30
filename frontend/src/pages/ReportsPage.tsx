@@ -29,12 +29,18 @@ export const ReportsPage: React.FC = () => {
     setLoading(true);
     try {
       const data = await api.listReports();
-      setReports(data);
-      if (data.length > 0) {
-        setSelectedReport(data[0]);
-      } else {
-        // Automatically generate initial report for Sales if none exist
-        await handleGenerateReport('Sales');
+      // Deduplicate by department + period
+      const uniqueMap = new Map<string, Report>();
+      data.forEach((r) => {
+        const key = `${r.department_name}-${r.period}`;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, r);
+        }
+      });
+      const uniqueList = Array.from(uniqueMap.values());
+      setReports(uniqueList);
+      if (uniqueList.length > 0) {
+        setSelectedReport(uniqueList[0]);
       }
     } catch (err) {
       console.error(err);
@@ -47,7 +53,12 @@ export const ReportsPage: React.FC = () => {
     setGenerating(true);
     try {
       const newReport = await api.generateReport(dept, '2025-Q4');
-      setReports((prev) => [newReport, ...prev]);
+      setReports((prev) => {
+        const filtered = prev.filter(
+          (r) => r.id !== newReport.id && !(r.department_name === newReport.department_name && r.period === newReport.period)
+        );
+        return [newReport, ...filtered];
+      });
       setSelectedReport(newReport);
     } catch (err) {
       console.error(err);
