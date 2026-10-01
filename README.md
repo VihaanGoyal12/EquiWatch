@@ -122,27 +122,92 @@ The seeded synthetic dataset models **NovaWorks Technologies** (1,200+ employees
 
 ---
 
-## 🧪 Automated Testing
+## 📐 Mathematical & Statistical Methodology
 
-Run the full automated test suite (testing analytics math, comparable group controls, signal detection, and API endpoints):
+EquiWatch separates statistical computation from narrative generation. Every metric, delta, and p-value is computed deterministically by the Python analytics engine using standard statistical tests.
 
-```bash
-# Run pytest in backend
-PYTHONPATH=backend backend/venv/bin/pytest backend/tests
+### 1. Composite Equity Health Index (0–100 Score)
+
+```text
+Equity Index = 100 - [ (0.30 × Pay_Penalty) + (0.30 × Promo_Penalty) + (0.25 × Task_Penalty) + (0.15 × Workload_Penalty) ]
 ```
-
-Run frontend production build verification:
-```bash
-cd frontend && npm run build
-```
+* **Pay Penalty**: `Controlled Pay Gap (%) × 4.0`
+* **Promotion Penalty**: `(Annualized Promotion Gap pp × 2.5) + (Velocity Delay Months × 1.5)`
+* **Task Penalty**: `Largest Task Category Gap (pp) × 1.5`
+* **Workload Penalty**: `Absolute Average Quarterly Hours Difference × 2.0`
 
 ---
 
-## 🌍 UN SDG Alignment & Business Model
+### 2. Task Allocation ("Office Housework" & Visibility)
 
-- **Primary**: **SDG 5 — Gender Equality** (Target 5.5: Equal opportunity for leadership and career advancement).
-- **Supporting**: **SDG 8 — Decent Work** (Target 8.5) and **SDG 10 — Reduced Inequalities** (Target 10.3).
-- **Commercial SaaS Model**: B2B recurring subscription with automated HRIS/payroll connectors and continuous equity audit dossiers.
+* **Category Share Percentage**:
+  ```text
+  Female Share (%) = (Total Female Hours in Category / Total Female Department Hours) × 100
+  Male Share (%)   = (Total Male Hours in Category / Total Male Department Hours) × 100
+  Difference (pp)  = Female Share (%) - Male Share (%)
+  ```
+* **Two-Way Chi-Square Test ($\chi^2$)**:
+  ```text
+  Chi-Square (χ²) = Sum [ (Observed_Hours - Expected_Hours)² / Expected_Hours ]
+  Expected Hours  = (Total Gender Hours × Total Category Hours) / Total Department Hours
+  ```
+  *Evaluates whether task distributions across genders differ due to systematic allocation ($p < 0.05$).*
+
+---
+
+### 3. Compensation Parity (Raw vs. Controlled Gap)
+
+* **Raw Median Pay Gap (Unadjusted)**:
+  ```text
+  Raw Pay Gap (%) = [ (Female Median Salary - Male Median Salary) / Male Median Salary ] × 100
+  ```
+* **Controlled / Adjusted Pay Gap (Cohort-Weighted)**:
+  To eliminate **Simpson's Paradox** (where differences in seniority distort aggregate pay), gaps are controlled within identical `(Role + Seniority Level)` cohorts:
+  ```text
+  Cohort_Gap (%) = [ (Female Median - Male Median) / Male Median ] × 100
+  Cohort_Weight  = Female Count + Male Count
+
+  Controlled Gap (%) = Sum of (Cohort_Gap × Cohort_Weight) / Total Employees
+  ```
+* **Statistical Test (Mann-Whitney U)**: Non-parametric rank-sum test evaluating whether salary distributions differ without distortion from high-earner outliers.
+
+---
+
+### 4. Promotion Velocity & Career Progression
+
+* **Annualized Promotion Rate**:
+  ```text
+  Promotion Rate (%) = (Total Promotions in past 4 Quarters / Eligible Employees in Level) × 100
+  Rate Gap (pp)       = Female Promotion Rate (%) - Male Promotion Rate (%)
+  ```
+* **Average Tenure-in-Band (Promotion Velocity)**:
+  ```text
+  Average Tenure (Months) = Sum of (Promotion Date - Role Start Date) / Total Promotions
+  Velocity Gap (Months)   = Female Average Tenure - Male Average Tenure
+  ```
+* **Two-Proportion Z-Test**: Computes $Z$-score and $p$-value for difference in promotion probabilities across comparable cohorts.
+
+---
+
+### 5. Workload & Overtime Distribution
+
+* **Quarterly Hours Delta**: `Average Female Hours - Average Male Hours`
+* **Overtime Rate (Threshold > 520h/quarter)**: `[ Count(Hours > 520h) / Cohort Headcount ] × 100`
+* **Welch's Two-Sample t-Test**:
+  ```text
+  t = (Female Mean Hours - Male Mean Hours) / sqrt[ (Female Variance / N_Female) + (Male Variance / N_Male) ]
+  ```
+
+---
+
+### 🚦 Threshold & Signal Classification Limits
+
+| Pillar | 🟢 Normal (Green) | 🟡 Moderate (Yellow) | 🔴 Review (Red) |
+| :--- | :--- | :--- | :--- |
+| **Task Allocation** | Gap < 8.0 pp | 8.0 pp ≤ Gap < 12.0 pp | Gap ≥ 12.0 pp + $p < 0.05$ |
+| **Promotions** | Gap < 4.0 pp | 4.0 pp ≤ Gap < 6.0 pp | Gap ≥ 6.0 pp + Persistence ($p < 0.05$) |
+| **Pay Parity** | Controlled Gap < 3.0% | 3.0% ≤ Gap < 5.0% | Controlled Gap ≥ 5.0% + $p < 0.05$ |
+| **Workload** | Diff < 2.7 hours | 2.7 hrs ≤ Diff < 4.0 hrs | Diff ≥ 4.0 hours + $p < 0.05$ |
 
 ---
 
